@@ -38,6 +38,7 @@ var d = &data{
 }
 
 func getCommentsIDHandler(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	if req.Method == "GET" {
 		j, err := json.Marshal(d)
 		if err != nil {
