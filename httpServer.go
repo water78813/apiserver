@@ -41,11 +41,18 @@ type User struct {
 	Name string `json:"name"`
 }
 
+type Score struct {
+	CommentID    string `json:"comment_id`
+	ScoreType    string `json:"type`
+	CommentScore string `json:"value"`
+}
+
 type Data struct {
-	Id   string `json:"id"`
-	User User   `json:"user"`
-	Date string `json:"date"`
-	Text string `json:"text"`
+	Id           string  `json:"id"`
+	User         User    `json:"user"`
+	Date         string  `json:"date"`
+	Text         string  `json:"text"`
+	CommentScore []Score `json:"comment_score"`
 }
 
 type Response struct {
@@ -92,29 +99,46 @@ func accessDB(id string) Response {
 	if err != nil {
 		panic(err)
 	}
-	q := fmt.Sprintf("SELECT * FROM user_comment where comment_id=%s", id)
-	rows, err := db.Query(q)
+	commentQuery := fmt.Sprintf("SELECT comment_id,comment_date,comment FROM user_comment where comment_id=%s", id)
+	commentRows, err := db.Query(commentQuery)
 	if err != nil {
 		panic(err)
 	}
-	var comment_id, user_id, comment_date, comment string
-	for rows.Next() {
-		err = rows.Scan(&comment_id, &user_id, &comment_date, &comment)
+	var comment_id, comment_date, comment string
+	for commentRows.Next() {
+		err = commentRows.Scan(&comment_id, &comment_date, &comment)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(comment_id, user_id, comment_date, comment)
 	}
 	userData := getData(id)
 	user := User{}
 	json.Unmarshal(userData, &user)
 	d := Response{
 		RData: Data{
-			Id:   comment_id,
-			User: user,
-			Date: comment_date,
-			Text: comment,
+			Id:           comment_id,
+			User:         user,
+			Date:         comment_date,
+			Text:         comment,
+			CommentScore: []Score{},
 		},
 	}
-	return d
+	scoreQuery := fmt.Sprintf("SELECT score_type,score FROM comment_score where comment_id=%s", id)
+	scoreRows, err := db.Query(scoreQuery)
+	if err != nil {
+		panic(err)
+	}
+	var score_type, score string
+	for scoreRows.Next() {
+		err = scoreRows.Scan(&score_type, &score)
+		if err != nil {
+			panic(err)
+		}
+		s := Score{
+			CommentID:    comment_id,
+			ScoreType:    score_type,
+			CommentScore: score,
+		}
+		d.RData.CommentScore = append(d.RData.CommentScore, s)
+	}
 }
