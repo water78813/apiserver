@@ -23,28 +23,22 @@ func homeHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("here")
 }
 
-type data struct {
-	id     int    `json:"id"`
-	userID int    `json:"user_id"`
-	date   string `json:"date"`
-	text   string `json:"text"`
-}
-
-var d = &data{
-	id:     1,
-	userID: 2,
-	date:   "2015-01-01",
-	text:   "左手には少しさがって博物の教室がある。\r",
+type Data struct {
+	Id   int    `json:"id"`
+	User int    `json:"user_id"`
+	Date string `json:"date"`
+	Text string `json:"text"`
 }
 
 func getCommentsIDHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if req.Method == "GET" {
-		j, err := json.Marshal(d)
-		if err != nil {
-			log.Fatal(err)
+		var d = Data{
+			Id:   1,
+			User: 2,
+			Date: "2015-01-01",
+			Text: "左手には少しさがって博物の教室がある。\r",
 		}
-		w.Write(j)
-		fmt.Println("get")
+		json.NewEncoder(w).Encode(d)
 	}
 }
